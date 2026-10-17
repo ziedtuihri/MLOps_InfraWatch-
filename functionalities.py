@@ -87,8 +87,12 @@ def load_dataset(path):
     cleaned = df.loc[:, required_columns].copy()
     for column in FEATURE_COLUMNS:
         cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
-    cleaned["classification"] = cleaned["classification"].astype(str).str.strip().str.lower()
-    cleaned = cleaned.dropna(subset=FEATURE_COLUMNS + ["classification"]).reset_index(drop=True)
+    cleaned["classification"] = (
+        cleaned["classification"].astype(str).str.strip().str.lower()
+    )
+    cleaned = cleaned.dropna(subset=FEATURE_COLUMNS + ["classification"]).reset_index(
+        drop=True
+    )
     return cleaned
 
 
@@ -121,9 +125,24 @@ def train_malware_model(df):
     predictions = model.predict(X_test_scaled)
     metrics = {
         "accuracy": round(float(accuracy_score(y_test, predictions)), 6),
-        "precision": round(float(precision_score(y_test, predictions, pos_label="malware", zero_division=0)), 6),
-        "recall": round(float(recall_score(y_test, predictions, pos_label="malware", zero_division=0)), 6),
-        "f1": round(float(f1_score(y_test, predictions, pos_label="malware", zero_division=0)), 6),
+        "precision": round(
+            float(
+                precision_score(
+                    y_test, predictions, pos_label="malware", zero_division=0
+                )
+            ),
+            6,
+        ),
+        "recall": round(
+            float(
+                recall_score(y_test, predictions, pos_label="malware", zero_division=0)
+            ),
+            6,
+        ),
+        "f1": round(
+            float(f1_score(y_test, predictions, pos_label="malware", zero_division=0)),
+            6,
+        ),
     }
     return model, scaler, metrics
 
@@ -139,7 +158,13 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
             file_path = os.path.join(root, file_name)
             feature_map = extract_file_features(file_path)
             if feature_map is None:
-                results.append({"file": file_path, "prediction": "error", "details": "unable to read file"})
+                results.append(
+                    {
+                        "file": file_path,
+                        "prediction": "error",
+                        "details": "unable to read file",
+                    }
+                )
                 continue
             feature_vector = [float(feature_map[column]) for column in feature_columns]
             feature_frame = pd.DataFrame([feature_vector], columns=feature_columns)
@@ -149,5 +174,3 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
             print(f"{result['prediction']}: {file_path}")
             results.append(result)
     return results
-
-

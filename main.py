@@ -6,7 +6,13 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from functionalities import FEATURE_COLUMNS, extract_file_features, load_dataset, scan_directory, train_malware_model
+from functionalities import (
+    FEATURE_COLUMNS,
+    extract_file_features,
+    load_dataset,
+    scan_directory,
+    train_malware_model,
+)
 from logging_config import setup_logging
 
 logger = setup_logging(os.getenv("APP_LOG_FILE", "mlflow.log"), level=logging.INFO)
@@ -15,7 +21,9 @@ DEFAULT_DATASET = Path("dataset") / "malwareDataset.csv"
 DEFAULT_MODEL_PATH = Path("malware_detection_model.pkl")
 
 
-def train_model(dataset_path: str = str(DEFAULT_DATASET), model_path: str = str(DEFAULT_MODEL_PATH)):
+def train_model(
+    dataset_path: str = str(DEFAULT_DATASET), model_path: str = str(DEFAULT_MODEL_PATH)
+):
     """Train and persist the malware detection model."""
     logger.info("Loading malware dataset from %s", dataset_path)
     df = load_dataset(dataset_path)
@@ -56,16 +64,39 @@ def predict_directory(directory_path: str, model_path: str = str(DEFAULT_MODEL_P
     feature_columns = bundle.get("feature_columns", FEATURE_COLUMNS)
 
     logger.info("Scanning %s with model %s", directory_path, model_path)
-    results = scan_directory(directory_path, model=model, scaler=scaler, feature_columns=feature_columns)
+    results = scan_directory(
+        directory_path, model=model, scaler=scaler, feature_columns=feature_columns
+    )
     return results
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train and run malware detection on the provided dataset.")
-    parser.add_argument("--dataset", type=str, default=str(DEFAULT_DATASET), help="Path to the CSV dataset.")
-    parser.add_argument("--model-path", type=str, default=str(DEFAULT_MODEL_PATH), help="Path where the trained model bundle will be stored.")
-    parser.add_argument("--scan-dir", type=str, default=None, help="Directory to scan for malware after training or loading the model.")
-    parser.add_argument("--no-train", action="store_true", help="Skip training and use the existing model bundle if present.")
+    parser = argparse.ArgumentParser(
+        description="Train and run malware detection on the provided dataset."
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default=str(DEFAULT_DATASET),
+        help="Path to the CSV dataset.",
+    )
+    parser.add_argument(
+        "--model-path",
+        type=str,
+        default=str(DEFAULT_MODEL_PATH),
+        help="Path where the trained model bundle will be stored.",
+    )
+    parser.add_argument(
+        "--scan-dir",
+        type=str,
+        default=None,
+        help="Directory to scan for malware after training or loading the model.",
+    )
+    parser.add_argument(
+        "--no-train",
+        action="store_true",
+        help="Skip training and use the existing model bundle if present.",
+    )
     return parser.parse_args()
 
 
