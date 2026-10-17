@@ -53,4 +53,4 @@ down:
 	docker compose down
 
 # 11. Run everything
-all: install check prepare_data train_model test
+all: install check prepare_data train_model train_hex_model test up
