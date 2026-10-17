@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+__pycache__
+.pytest_cache
+.mypy_cache
+.env
+.env.*
+!.env.example
+mlflow.log
+malware_detection_model.pkl
+mlruns

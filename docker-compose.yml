@@ -82,7 +82,8 @@ services:
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
-      - ./mlflow.log:/app/mlflow.log:ro,Z
+      - mlops_logs:/app/logs:ro,Z
+      - logstash_data:/usr/share/logstash/data:Z
     ports:
       - 5044:5044
       - 50000:50000/tcp
@@ -120,13 +121,18 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./mlflow.log:/app/mlflow.log:rw,Z
+      - ./dataset:/app/dataset:ro,Z
+      - mlops_logs:/app/logs:Z
+      - mlops_models:/models:Z
+      - mlflow_data:/mlflow:Z
     ports:
       - 5000:5000  # MLflow UI
-      - 8000:8000  # FastAPI
+      - 8000:8000  # MLOps API
     environment:
-      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      APP_LOG_FILE: /app/logs/mlops.log
+      MODEL_PATH: /models/malware_detection_model.pkl
+      MLFLOW_TRACKING_URI: sqlite:////mlflow/mlflow.db
+      MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts
     networks:
       - elk
 
@@ -136,3 +142,7 @@ networks:
 
 volumes:
   elasticsearch:
+  logstash_data:
+  mlops_logs:
+  mlops_models:
+  mlflow_data:
