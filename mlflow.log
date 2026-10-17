@@ -1,0 +1,6 @@
+2026-10-16 20:03:37 INFO mlflow_app Loading malware dataset from dataset/malwareDataset.csv
+2026-10-16 20:03:38 INFO mlflow_app Dataset loaded with 100000 rows and 7 columns
+2026-10-16 20:03:50 INFO mlflow_app Saved model bundle to malware_detection_model.pkl
+2026-10-16 20:03:50 INFO mlflow_app Validation metrics: {'accuracy': 0.880467, 'precision': 0.833353, 'recall': 0.951133, 'f1': 0.888356}
+2026-10-16 20:04:02 INFO mlflow_app Scanning dataset with model malware_detection_model.pkl
+2026-10-16 20:04:23 INFO mlflow_app Scanning dataset with model malware_detection_model.pkl
