@@ -30,6 +30,31 @@ The model uses the six feature columns from the notebook workflow:
 - `policy`
 - `nivcsw`
 
+## Train the UCI malware models
+
+The separate `hex_malwer_detection.ipynb` workflow uses
+`dataset/uci_malware_detection.csv`, which has a `Label` target and 531
+numeric feature columns. It trains a regularized decision tree and a
+standardized K-nearest-neighbors classifier, evaluates both on the same
+stratified 80/20 split, and saves their feature schema and metrics without
+replacing the six-feature model used by the API or file scanner:
+
+```bash
+python hex_malware_detection.py
+```
+
+Override the dataset and output bundle paths when needed:
+
+```bash
+python hex_malware_detection.py \
+  --dataset dataset/uci_malware_detection.csv \
+  --model-path hex_malware_models.pkl
+```
+
+The equivalent Make target is `make train_hex_model`. The saved bundle
+contains both classifiers under `models`, the ordered `feature_columns`, class
+labels, and holdout metrics.
+
 ## Run the MLOps stack
 
 Start Elasticsearch, Logstash, Kibana, the MLOps API, and the MLflow UI:

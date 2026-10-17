@@ -1,4 +1,4 @@
-.PHONY: all venv install format lint security check prepare_data train_model test clean
+.PHONY: all venv install format lint security check prepare_data train_model train_hex_model test clean
 
 # 1. Create virtual environment
 venv:
@@ -31,6 +31,10 @@ prepare_data:
 train_model:
 	. venv/bin/activate && python3 -c "from main import train_model; train_model()"
 
+# Train and evaluate the UCI 531-feature malware models
+train_hex_model:
+	. venv/bin/activate && python3 hex_malware_detection.py
+
 # 9. Run tests
 test:
 	. venv/bin/activate && pytest
@@ -50,4 +54,3 @@ down:
 
 # 11. Run everything
 all: install check prepare_data train_model test
-
