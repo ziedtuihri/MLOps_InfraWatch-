@@ -149,3 +149,5 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
             print(f"{result['prediction']}: {file_path}")
             results.append(result)
     return results
+
+
