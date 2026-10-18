@@ -53,7 +53,15 @@ python hex_malware_detection.py \
 
 The equivalent Make target is `make train_hex_model`. The saved bundle
 contains both classifiers under `models`, the ordered `feature_columns`, class
-labels, and holdout metrics.
+labels, and holdout metrics. Each model's holdout metrics and per-row
+predictions are also written to `logs/hex_malware_detection.log`. With the
+Docker Compose stack running, restart Logstash after applying the pipeline
+change; it reads this file and indexes the events in `mlops-logs-*`. Refresh
+the Kibana data view to see the new records. Filter on
+`event_data.event: hex_prediction_completed` to view predictions, or
+`event_data.model` to compare the decision tree and KNN results. If the saved
+dashboard is already imported, update it with
+`bash setup/import_kibana_dashboard.sh`.
 
 ## Run the MLOps stack
 

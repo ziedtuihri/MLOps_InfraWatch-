@@ -82,6 +82,7 @@ services:
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+      - ./logs:/app/host-logs:ro,Z
       - mlops_logs:/app/logs:ro,Z
       - logstash_data:/usr/share/logstash/data:Z
     ports:
