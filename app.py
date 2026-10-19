@@ -5,7 +5,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from functionalities import FEATURE_COLUMNS
+from malwer_detecter import FEATURE_COLUMNS
 from main import DEFAULT_DATASET, logger, train_model
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/models/malware_detection_model.pkl")

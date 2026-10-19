@@ -1,3 +1,5 @@
+"""Feature extraction, training, and scanning utilities for malware detection."""
+
 import math
 import os
 from pathlib import Path

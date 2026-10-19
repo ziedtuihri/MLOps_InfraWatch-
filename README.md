@@ -66,6 +66,9 @@ correlations, and compares additional models. The generated outage labels are
 demonstration labels based on CPU/memory thresholds with seeded noise; they
 are not observed outage records.
 
+The notebook's script equivalent can be run from the repository root with
+`python notebooks/Monitor_Cluster.py`.
+
 ## Kibana malware metrics
 
 The `notebooks/malwer_detection.ipynb` model-comparison cell writes accuracy,

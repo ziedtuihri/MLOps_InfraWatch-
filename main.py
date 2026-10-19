@@ -6,7 +6,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from functionalities import (
+from malwer_detecter import (
     FEATURE_COLUMNS,
     extract_file_features,
     load_dataset,
