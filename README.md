@@ -54,13 +54,32 @@ python hex_malware_detection.py \
 The equivalent Make target is `make train_hex_model`. The saved bundle
 contains both classifiers under `models`, the ordered `feature_columns`, class
 labels, and holdout metrics. Each model's holdout metrics and per-row
-predictions are also written to `logs/hex_malware_detection.log`. With the
-Docker Compose stack running, restart Logstash after applying the pipeline
-change; it reads this file and indexes the events in `mlops-logs-*`. Refresh
-the Kibana data view to see the new records. Filter on
-`event_data.event: hex_prediction_completed` to view predictions, or
-`event_data.model` to compare the decision tree and KNN results. If the saved
-dashboard is already imported, update it with
+predictions are also written to `logs/hex_malware_detection.log`.
+
+## Cluster monitoring notebook
+
+Run `notebooks/Monitoring_Cluster.ipynb` from top to bottom. It reads
+`dataset/datacenter_warehouse_50k.csv`, checks the required telemetry columns,
+cleans missing/non-numeric model inputs, creates a reproducible proxy outage
+target, trains and evaluates a Random Forest, reviews feature importance and
+correlations, and compares additional models. The generated outage labels are
+demonstration labels based on CPU/memory thresholds with seeded noise; they
+are not observed outage records.
+
+## Kibana malware metrics
+
+The `notebooks/malwer_detection.ipynb` model-comparison cell writes accuracy,
+malware precision, recall, and F1 for every compared model to
+`logs/malware_detection_notebook.log`. Logstash reads this file along with the
+API log at `/app/logs/mlops.log` and the hex-model log at
+`logs/hex_malware_detection.log`. The metrics are parsed into typed fields
+under `event_data` (for example `event_data.metric_accuracy` and
+`event_data.metric_f1`) in the `logs-*` indices.
+
+With the Docker Compose stack running, restart Logstash after applying the
+pipeline change. Refresh or create the Kibana data view `logs-*` to see new
+records. Filter on `event_data.event` for event type and `event_data.model` to
+compare models. If the saved dashboard is already imported, update it with
 `bash setup/import_kibana_dashboard.sh`.
 
 ## Run the MLOps stack
@@ -88,8 +107,8 @@ curl -X POST http://localhost:8000/predict \
 ```
 
 Training metrics and prediction events are written to the shared `mlops_logs`
-volume and indexed by Logstash as `mlops-logs-*`. In Kibana at
-`http://localhost:5601`, create a data view for `mlops-logs-*` to explore them.
+volume and indexed by Logstash as `logs-*`. In Kibana at
+`http://localhost:5601`, create a data view for `logs-*` to explore them.
 Structured events are available under `event_data`; for example,
 `event_data.event: training_completed` and
 `event_data.event: prediction_completed`.
