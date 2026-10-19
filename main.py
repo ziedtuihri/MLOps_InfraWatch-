@@ -1,7 +1,9 @@
 import argparse
 import logging
+import math
 import os
 from pathlib import Path
+from urllib.parse import quote
 
 import joblib
 import pandas as pd
@@ -15,7 +17,10 @@ from malwer_detecter import (
 )
 from logging_config import setup_logging
 
-logger = setup_logging(os.getenv("APP_LOG_FILE", "mlflow.log"), level=logging.INFO)
+DEFAULT_LOG_PATH = Path(__file__).resolve().parent / "logs" / "malwer_detecter.log"
+logger = setup_logging(
+    os.getenv("APP_LOG_FILE", str(DEFAULT_LOG_PATH)), level=logging.INFO
+)
 
 DEFAULT_DATASET = Path("dataset") / "malwareDataset.csv"
 DEFAULT_MODEL_PATH = Path("malware_detection_model.pkl")
@@ -41,12 +46,21 @@ def train_model(
     joblib.dump(bundle, model_path)
     logger.info("Saved model bundle to %s", model_path)
     logger.info("Validation metrics: %s", metrics)
+    dataset_name = quote(Path(dataset_path).name, safe="._-")
+    test_rows = math.ceil(df.shape[0] * 0.3)
     logger.info(
-        "event=training_completed dataset_rows=%d dataset_columns=%d "
+        "event=training_completed dataset=%s target=classification "
+        "positive_class=malware dataset_rows=%d dataset_columns=%d "
+        "feature_count=%d feature_columns=%s train_rows=%d test_rows=%d "
         "model=%s metric_accuracy=%.6f metric_precision=%.6f "
         "metric_recall=%.6f metric_f1=%.6f",
+        dataset_name,
         df.shape[0],
         df.shape[1],
+        len(FEATURE_COLUMNS),
+        ",".join(FEATURE_COLUMNS),
+        df.shape[0] - test_rows,
+        test_rows,
         type(model).__name__,
         metrics["accuracy"],
         metrics["precision"],

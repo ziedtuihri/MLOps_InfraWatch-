@@ -1,5 +1,7 @@
 """Train and compare models for datacenter cluster outage prediction."""
 
+import logging
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -22,6 +24,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
+from logging_config import setup_logging
+
+
+logger = logging.getLogger("cluster_monitoring")
+
 
 REQUIRED_COLUMNS = [
     "Server_Age_Years",
@@ -39,7 +46,11 @@ REQUIRED_COLUMNS = [
 
 
 def main():
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = Path(__file__).resolve().parent
+    log_path = os.getenv(
+        "CLUSTER_LOG_FILE", str(project_root / "logs" / "cluster_monitoring.log")
+    )
+    setup_logging(log_path)
     dataset_path = project_root / "dataset" / "datacenter_warehouse_50k.csv"
     if not dataset_path.is_file():
         raise FileNotFoundError(
@@ -48,6 +59,7 @@ def main():
         )
 
     telemetry = pd.read_csv(dataset_path)
+    dataset_columns = telemetry.shape[1]
     print(f"Loaded {len(telemetry):,} rows from {dataset_path}")
     print(telemetry.head())
 
@@ -122,6 +134,15 @@ def main():
     plt.title("Random Forest feature importance for outage prediction")
     plt.tight_layout()
     plt.show()
+    for rank, row in enumerate(importance_df.itertuples(index=False), start=1):
+        logger.info(
+            "event=feature_importance_completed "
+            "dataset=datacenter_warehouse_50k.csv model=Random_Forest "
+            "feature_column=%s feature_importance=%.6f importance_rank=%d",
+            row.feature,
+            row.importance,
+            rank,
+        )
 
     numeric_columns = telemetry.select_dtypes(
         include=["float64", "int64", "int32"]
@@ -163,6 +184,7 @@ def main():
         "K-Nearest Neighbors",
     }
     comparison_results = [{"model": "Random Forest", **rf_metrics}]
+    evaluation_predictions = {"Random Forest": predictions}
     for name, classifier in models.items():
         train_features, test_features = (
             (X_train_scaled, X_test_scaled)
@@ -171,6 +193,7 @@ def main():
         )
         classifier.fit(train_features, y_train)
         model_predictions = classifier.predict(test_features)
+        evaluation_predictions[name] = model_predictions
         comparison_results.append(
             {
                 "model": name,
@@ -190,6 +213,36 @@ def main():
     comparison_df = pd.DataFrame(comparison_results).set_index("model")
     print("Model comparison, sorted by outage F1:")
     print(comparison_df.sort_values("outage_f1", ascending=False))
+
+    feature_columns = ",".join(REQUIRED_COLUMNS)
+    for result in comparison_results:
+        matrix = confusion_matrix(
+            y_test, evaluation_predictions[result["model"]], labels=[0, 1]
+        )
+        logger.info(
+            "event=model_evaluation_completed dataset=datacenter_warehouse_50k.csv "
+            "target=Is_Outage positive_class=outage model=%s "
+            "dataset_rows=%d dataset_columns=%d feature_count=%d "
+            "feature_columns=%s train_rows=%d test_rows=%d "
+            "metric_accuracy=%.6f metric_precision=%.6f metric_recall=%.6f "
+            "metric_f1=%.6f true_negative=%d false_positive=%d "
+            "false_negative=%d true_positive=%d",
+            result["model"].replace(" ", "_"),
+            len(telemetry),
+            dataset_columns,
+            len(REQUIRED_COLUMNS),
+            feature_columns,
+            len(X_train),
+            len(X_test),
+            result["accuracy"],
+            result["outage_precision"],
+            result["outage_recall"],
+            result["outage_f1"],
+            matrix[0, 0],
+            matrix[0, 1],
+            matrix[1, 0],
+            matrix[1, 1],
+        )
 
 
 if __name__ == "__main__":

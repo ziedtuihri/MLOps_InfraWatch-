@@ -66,23 +66,33 @@ correlations, and compares additional models. The generated outage labels are
 demonstration labels based on CPU/memory thresholds with seeded noise; they
 are not observed outage records.
 
-The notebook's script equivalent can be run from the repository root with
-`python notebooks/Monitor_Cluster.py`.
+Run the script equivalent from the repository root with
+`python Monitor_Cluster.py`. It reads `dataset/datacenter_warehouse_50k.csv`
+relative to the script location and writes structured evaluation events to
+`logs/cluster_monitoring.log`.
 
 ## Kibana malware metrics
 
-The `notebooks/malwer_detection.ipynb` model-comparison cell writes accuracy,
-malware precision, recall, and F1 for every compared model to
-`logs/malware_detection_notebook.log`. Logstash reads this file along with the
-API log at `/app/logs/mlops.log` and the hex-model log at
-`logs/hex_malware_detection.log`. The metrics are parsed into typed fields
-under `event_data` (for example `event_data.metric_accuracy` and
-`event_data.metric_f1`) in the `logs-*` indices.
+The `main.py` malware CLI writes its training metrics and scanned-file
+predictions to `logs/malwer_detecter.log` by default. The cluster script writes
+one event per evaluated model to `logs/cluster_monitoring.log`; those records
+include the dataset dimensions, feature columns, standard accuracy/precision/
+recall/F1 fields, and confusion-matrix counts. Logstash also reads the notebook
+log at `logs/malware_detection_notebook.log`, the API log at
+`/app/logs/mlops.log`, and the hex-model log at
+`logs/hex_malware_detection.log`. The events share the `logs-*` indices and
+typed `event_data` fields (including `event_data.metric_accuracy`,
+`event_data.metric_f1`, `event_data.feature_columns`, and the cluster
+`event_data.feature_importance` values) rather than creating a separate
+Elasticsearch index for each script.
 
 With the Docker Compose stack running, restart Logstash after applying the
 pipeline change. Refresh or create the Kibana data view `logs-*` to see new
 records. Filter on `event_data.event` for event type and `event_data.model` to
-compare models. If the saved dashboard is already imported, update it with
+compare models and use `event_data.event` to distinguish script event types.
+After changing the Logstash pipeline, restart Logstash and refresh the Kibana
+data view so the new typed fields are available. If the saved dashboard is
+already imported, update it with
 `bash setup/import_kibana_dashboard.sh`.
 
 ## Run the MLOps stack

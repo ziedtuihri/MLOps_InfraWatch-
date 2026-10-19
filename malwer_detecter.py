@@ -1,13 +1,20 @@
 """Feature extraction, training, and scanning utilities for malware detection."""
 
+import logging
 import math
 import os
 from pathlib import Path
+from urllib.parse import quote
 
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -19,6 +26,8 @@ FEATURE_COLUMNS = [
     "policy",
     "nivcsw",
 ]
+
+logger = logging.getLogger("malwer_detecter")
 
 
 def calculate_entropy(file_path):
@@ -155,11 +164,20 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
         feature_columns = FEATURE_COLUMNS
 
     results = []
+    sample_id = 0
     for root, _, files in os.walk(directory_path):
         for file_name in sorted(files):
             file_path = os.path.join(root, file_name)
+            sample_id += 1
+            encoded_file_name = quote(file_name, safe="._-")
             feature_map = extract_file_features(file_path)
             if feature_map is None:
+                logger.info(
+                    "event=scan_error sample_id=%d file_name=%s "
+                    "details=unable_to_read_file",
+                    sample_id,
+                    encoded_file_name,
+                )
                 results.append(
                     {
                         "file": file_path,
@@ -173,6 +191,18 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
             scaled = scaler.transform(feature_frame)
             prediction = model.predict(scaled)[0]
             result = {"file": file_path, "prediction": str(prediction).lower()}
+            feature_values = " ".join(
+                f"feature_{column}={feature_map[column]:.6f}"
+                for column in feature_columns
+            )
+            logger.info(
+                "event=prediction_completed sample_id=%d file_name=%s "
+                "prediction=%s %s",
+                sample_id,
+                encoded_file_name,
+                result["prediction"],
+                feature_values,
+            )
             print(f"{result['prediction']}: {file_path}")
             results.append(result)
     return results
