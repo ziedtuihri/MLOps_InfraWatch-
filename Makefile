@@ -55,5 +55,8 @@ down:
 elastic:
 	sudo sysctl -w vm.max_map_count=262144	
 
+logstash:
+	docker compose up -d --force-recreate logstash	
+
 # 11. Run everything
 all: install check prepare_data train_model train_hex_model test up
