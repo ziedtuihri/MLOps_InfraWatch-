@@ -1,0 +1,55 @@
+{
+  "index_patterns": ["logs-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "pipeline": { "type": "keyword" },
+      "event_category": { "type": "keyword" },
+      "log_level": { "type": "keyword" },
+      "service": { "type": "keyword" },
+      "environment": { "type": "keyword" },
+      "mlflow_event": { "type": "object" },
+      "event_data": {
+        "properties": {
+          "event": { "type": "keyword" },
+          "model": { "type": "keyword" },
+          "dataset": { "type": "keyword" },
+          "target": { "type": "keyword" },
+          "positive_class": { "type": "keyword" },
+          "feature_columns": { "type": "keyword" },
+          "feature_count": { "type": "integer" },
+          "train_rows": { "type": "integer" },
+          "metric_accuracy": { "type": "float" },
+          "metric_precision": { "type": "float" },
+          "metric_recall": { "type": "float" },
+          "metric_f1": { "type": "float" },
+          "accuracy": { "type": "float" },
+          "test_rows": { "type": "integer" },
+          "dataset_rows": { "type": "integer" },
+          "dataset_columns": { "type": "integer" },
+          "sample_id": { "type": "integer" },
+          "true_negative": { "type": "integer" },
+          "false_positive": { "type": "integer" },
+          "false_negative": { "type": "integer" },
+          "true_positive": { "type": "integer" },
+          "prediction": { "type": "keyword" },
+          "file_name": { "type": "keyword" },
+          "details": { "type": "keyword" },
+          "feature_usage_counter": { "type": "float" },
+          "feature_fs_excl_counter": { "type": "float" },
+          "feature_task_size": { "type": "float" },
+          "feature_end_data": { "type": "float" },
+          "feature_policy": { "type": "float" },
+          "feature_nivcsw": { "type": "float" },
+          "feature_column": { "type": "keyword" },
+          "feature_importance": { "type": "float" },
+          "importance_rank": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
