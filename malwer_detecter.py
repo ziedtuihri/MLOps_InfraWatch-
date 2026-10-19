@@ -173,8 +173,9 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
             feature_map = extract_file_features(file_path)
             if feature_map is None:
                 logger.info(
-                    "event=scan_error sample_id=%d file_name=%s "
+                    "event=scan_error model=%s sample_id=%d file_name=%s "
                     "details=unable_to_read_file",
+                    type(model).__name__,
                     sample_id,
                     encoded_file_name,
                 )
@@ -196,8 +197,9 @@ def scan_directory(directory_path, model, scaler, feature_columns=None):
                 for column in feature_columns
             )
             logger.info(
-                "event=prediction_completed sample_id=%d file_name=%s "
+                "event=prediction_completed model=%s sample_id=%d file_name=%s "
                 "prediction=%s %s",
+                type(model).__name__,
                 sample_id,
                 encoded_file_name,
                 result["prediction"],

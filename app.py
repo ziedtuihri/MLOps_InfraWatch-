@@ -56,9 +56,10 @@ def predict(request: PredictionRequest):
     prediction = str(bundle["model"].predict(scaled_features)[0]).lower()
 
     logger.info(
-        "event=prediction_completed prediction=%s feature_usage_counter=%s "
+        "event=prediction_completed model=%s prediction=%s feature_usage_counter=%s "
         "feature_fs_excl_counter=%s feature_task_size=%s feature_end_data=%s "
         "feature_policy=%s feature_nivcsw=%s",
+        type(bundle["model"]).__name__,
         prediction,
         features["usage_counter"],
         features["fs_excl_counter"],

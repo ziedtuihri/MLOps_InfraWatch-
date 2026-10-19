@@ -78,13 +78,13 @@ predictions to `logs/malwer_detecter.log` by default. The cluster script writes
 one event per evaluated model to `logs/cluster_monitoring.log`; those records
 include the dataset dimensions, feature columns, standard accuracy/precision/
 recall/F1 fields, and confusion-matrix counts. Logstash also reads the notebook
-log at `logs/malware_detection_notebook.log`, the API log at
-`/app/logs/mlops.log`, and the hex-model log at
-`logs/hex_malware_detection.log`. The events share the `logs-*` indices and
-typed `event_data` fields (including `event_data.metric_accuracy`,
-`event_data.metric_f1`, `event_data.feature_columns`, and the cluster
-`event_data.feature_importance` values) rather than creating a separate
-Elasticsearch index for each script.
+log at `logs/malware_detection_notebook.log` and the API log at
+`/app/logs/mlops.log`. The three Python scripts write to separate daily indices:
+`logs-malwer-detecter-*`, `logs-hex-malware-detection-*`, and
+`logs-cluster-monitoring-*`. All match the `logs-*` Kibana data view and index
+template. Structured event values such as the model name are available under
+`event_data.model`; the source script is available as the top-level `script`
+field.
 
 With the Docker Compose stack running, restart Logstash after applying the
 pipeline change. Refresh or create the Kibana data view `logs-*` to see new

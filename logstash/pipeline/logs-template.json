@@ -8,6 +8,7 @@
     "properties": {
       "@timestamp": { "type": "date" },
       "pipeline": { "type": "keyword" },
+      "script": { "type": "keyword" },
       "event_category": { "type": "keyword" },
       "log_level": { "type": "keyword" },
       "service": { "type": "keyword" },
