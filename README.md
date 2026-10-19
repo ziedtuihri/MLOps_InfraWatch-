@@ -95,6 +95,25 @@ data view so the new typed fields are available. If the saved dashboard is
 already imported, update it with
 `bash setup/import_kibana_dashboard.sh`.
 
+## MLflow training experiments
+
+The three standalone training workflows log to separate MLflow experiments:
+`Malware Detection` (`main.py`), `UCI Malware Detection`
+(`hex_malware_detection.py`), and `Datacenter Outage Prediction`
+(`Monitor_Cluster.py`). Each run records model parameters, training data
+lineage, holdout metrics, evaluation reports, feature columns, and a
+scikit-learn model artifact. The malware scanner artifact includes its fitted
+scaler so it accepts the original feature values.
+
+Set `MLFLOW_TRACKING_URI` to use a remote or database-backed tracking store.
+Docker Compose already configures the persistent SQLite-backed store. For
+local runs without that variable, MLflow uses its default local `mlruns`
+directory; launch the UI with:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns
+```
+
 ## Run the MLOps stack
 
 Start Elasticsearch, Logstash, Kibana, the MLOps API, and the MLflow UI:

@@ -6,17 +6,24 @@ import os
 from pathlib import Path
 from urllib.parse import quote
 
+import mlflow
+import mlflow.sklearn
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
+    classification_report,
+    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
 )
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+
+from mlflow_utils import mlflow_run
 
 FEATURE_COLUMNS = [
     "usage_counter",
@@ -28,6 +35,7 @@ FEATURE_COLUMNS = [
 ]
 
 logger = logging.getLogger("malwer_detecter")
+MLFLOW_EXPERIMENT = "Malware Detection"
 
 
 def calculate_entropy(file_path):
@@ -109,8 +117,26 @@ def load_dataset(path):
 
 def train_malware_model(df):
     """Train a Random Forest model on the malware dataset and return the model, scaler, and metrics."""
+    missing_columns = [
+        column
+        for column in FEATURE_COLUMNS + ["classification"]
+        if column not in df.columns
+    ]
+    if missing_columns:
+        raise ValueError(
+            f"Training dataframe missing required columns: {missing_columns}"
+        )
+    if df.empty:
+        raise ValueError("Cannot train on an empty dataframe")
+
     X = df[FEATURE_COLUMNS]
     y = df["classification"]
+    if y.nunique() < 2:
+        raise ValueError("Training requires at least two distinct target labels.")
+    if y.value_counts().min() < 2:
+        raise ValueError(
+            "Each target label needs at least two rows for a stratified split."
+        )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -124,13 +150,14 @@ def train_malware_model(df):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    model = RandomForestClassifier(
-        n_estimators=200,
-        random_state=42,
-        max_depth=None,
-        min_samples_leaf=1,
-        class_weight="balanced",
-    )
+    model_params = {
+        "n_estimators": 200,
+        "random_state": 42,
+        "max_depth": None,
+        "min_samples_leaf": 1,
+        "class_weight": "balanced",
+    }
+    model = RandomForestClassifier(**model_params)
     model.fit(X_train_scaled, y_train)
 
     predictions = model.predict(X_test_scaled)
@@ -155,6 +182,48 @@ def train_malware_model(df):
             6,
         ),
     }
+
+    report = classification_report(
+        y_test, predictions, output_dict=True, zero_division=0
+    )
+    matrix = confusion_matrix(y_test, predictions, labels=model.classes_)
+    training_data = X_train.copy()
+    training_data["classification"] = y_train
+    logged_model = make_pipeline(scaler, model)
+
+    with mlflow_run(MLFLOW_EXPERIMENT, "random_forest_training"):
+        mlflow.log_params(
+            {
+                "model": "random_forest",
+                "test_size": 0.3,
+                "feature_count": len(FEATURE_COLUMNS),
+                **model_params,
+            }
+        )
+        mlflow.log_metrics(metrics)
+        mlflow.log_input(
+            mlflow.data.from_pandas(training_data, source="malware training data"),
+            context="training",
+        )
+        mlflow.log_text(
+            "\n".join(FEATURE_COLUMNS), artifact_file="feature_columns.txt"
+        )
+        mlflow.log_dict(
+            report, artifact_file="evaluation/classification_report.json"
+        )
+        mlflow.log_dict(
+            {
+                "labels": [str(label) for label in model.classes_],
+                "matrix": matrix.tolist(),
+            },
+            artifact_file="evaluation/confusion_matrix.json",
+        )
+        mlflow.sklearn.log_model(
+            logged_model,
+            artifact_path="model",
+            input_example=X_test.head(min(5, len(X_test))),
+        )
+
     return model, scaler, metrics
 
 

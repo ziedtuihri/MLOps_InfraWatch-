@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import mlflow
+import mlflow.sklearn
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -20,14 +22,17 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
 from logging_config import setup_logging
+from mlflow_utils import mlflow_run
 
 
 logger = logging.getLogger("cluster_monitoring")
+MLFLOW_EXPERIMENT = "Datacenter Outage Prediction"
 
 
 REQUIRED_COLUMNS = [
@@ -43,6 +48,72 @@ REQUIRED_COLUMNS = [
     "Packet_Rate",
     "Failed_Logins",
 ]
+
+
+def _log_model_run(
+    name,
+    model,
+    result,
+    predictions,
+    y_test,
+    input_example,
+    training_data,
+):
+    """Log one evaluated outage model and its reproducibility artifacts."""
+    classes = [0, 1]
+    report = classification_report(
+        y_test, predictions, labels=classes, output_dict=True, zero_division=0
+    )
+    matrix = confusion_matrix(y_test, predictions, labels=classes)
+    model_params = {
+        key: value
+        for key, value in model.get_params(deep=True).items()
+        if isinstance(value, (str, int, float, bool)) or value is None
+    }
+
+    with mlflow_run(MLFLOW_EXPERIMENT, f"{name.lower().replace(' ', '_')}_training"):
+        mlflow.log_params(
+            {
+                "model": name,
+                "target": "Is_Outage",
+                "positive_class": "outage",
+                "test_size": 0.3,
+                "random_state": 42,
+                "train_rows": len(training_data),
+                "test_rows": len(input_example),
+                "feature_count": len(REQUIRED_COLUMNS),
+                **model_params,
+            }
+        )
+        mlflow.log_metrics(
+            {
+                "accuracy": float(result["accuracy"]),
+                "outage_precision": float(result["outage_precision"]),
+                "outage_recall": float(result["outage_recall"]),
+                "outage_f1": float(result["outage_f1"]),
+            }
+        )
+        mlflow.log_input(
+            mlflow.data.from_pandas(
+                training_data, source="datacenter_warehouse_50k.csv"
+            ),
+            context="training",
+        )
+        mlflow.log_text(
+            "\n".join(REQUIRED_COLUMNS), artifact_file="feature_columns.txt"
+        )
+        mlflow.log_dict(
+            report, artifact_file="evaluation/classification_report.json"
+        )
+        mlflow.log_dict(
+            {"labels": classes, "matrix": matrix.tolist()},
+            artifact_file="evaluation/confusion_matrix.json",
+        )
+        mlflow.sklearn.log_model(
+            model,
+            artifact_path="model",
+            input_example=input_example.head(min(5, len(input_example))),
+        )
 
 
 def main():
@@ -91,6 +162,8 @@ def main():
     )
     print(f"Outage class counts:\n{target.value_counts().sort_index()}")
     print(f"Training rows: {len(X_train):,}; test rows: {len(X_test):,}")
+    training_data = X_train.copy()
+    training_data["Is_Outage"] = y_train
 
     model = RandomForestClassifier(
         n_estimators=100, random_state=42, class_weight="balanced", n_jobs=-1
@@ -107,6 +180,15 @@ def main():
         ),
         "outage_f1": f1_score(y_test, predictions, pos_label=1, zero_division=0),
     }
+    _log_model_run(
+        "Random Forest",
+        model,
+        rf_metrics,
+        predictions,
+        y_test,
+        X_test,
+        training_data,
+    )
     print("Random Forest holdout metrics:")
     print(pd.Series(rf_metrics, name="score"))
     print(classification_report(y_test, predictions, zero_division=0))
@@ -185,6 +267,7 @@ def main():
     }
     comparison_results = [{"model": "Random Forest", **rf_metrics}]
     evaluation_predictions = {"Random Forest": predictions}
+    evaluation_models = {"Random Forest": model}
     for name, classifier in models.items():
         train_features, test_features = (
             (X_train_scaled, X_test_scaled)
@@ -193,6 +276,9 @@ def main():
         )
         classifier.fit(train_features, y_train)
         model_predictions = classifier.predict(test_features)
+        evaluation_models[name] = (
+            make_pipeline(scaler, classifier) if name in scaled_models else classifier
+        )
         evaluation_predictions[name] = model_predictions
         comparison_results.append(
             {
@@ -213,6 +299,18 @@ def main():
     comparison_df = pd.DataFrame(comparison_results).set_index("model")
     print("Model comparison, sorted by outage F1:")
     print(comparison_df.sort_values("outage_f1", ascending=False))
+
+    for result in comparison_results[1:]:
+        name = result["model"]
+        _log_model_run(
+            name,
+            evaluation_models[name],
+            result,
+            evaluation_predictions[name],
+            y_test,
+            X_test,
+            training_data,
+        )
 
     feature_columns = ",".join(REQUIRED_COLUMNS)
     for result in comparison_results:
