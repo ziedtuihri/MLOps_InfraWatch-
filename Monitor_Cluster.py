@@ -113,6 +113,7 @@ def _log_model_run(
             model,
             artifact_path="model",
             input_example=input_example.head(min(5, len(input_example))),
+            serialization_format="pickle",
         )
 
 

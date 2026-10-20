@@ -222,6 +222,7 @@ def train_malware_model(df):
             logged_model,
             artifact_path="model",
             input_example=X_test.head(min(5, len(X_test))),
+            serialization_format="pickle",
         )
 
     return model, scaler, metrics
