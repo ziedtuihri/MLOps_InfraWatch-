@@ -114,6 +114,9 @@ def _log_model_run(
             artifact_path="model",
             input_example=input_example.head(min(5, len(input_example))),
             serialization_format="pickle",
+            registered_model_name=(
+                f"datacenter-outage-{name.lower().replace(' ', '-')}"
+            ),
         )
 
 

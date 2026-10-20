@@ -102,17 +102,27 @@ The three standalone training workflows log to separate MLflow experiments:
 (`hex_malware_detection.py`), and `Datacenter Outage Prediction`
 (`Monitor_Cluster.py`). Each run records model parameters, training data
 lineage, holdout metrics, evaluation reports, feature columns, and a
-scikit-learn model artifact. The malware scanner artifact includes its fitted
-scaler so it accepts the original feature values.
+scikit-learn model artifact. Training also registers models in the Model
+Registry (`malware-detection-model`, `uci-malware-decision_tree`,
+`uci-malware-knn`, and one `datacenter-outage-*` model per estimator). The
+malware scanner artifact includes its fitted scaler so it accepts the original
+feature values.
 
-Set `MLFLOW_TRACKING_URI` to use a remote or database-backed tracking store.
-Docker Compose already configures the persistent SQLite-backed store. For
-local runs without that variable, MLflow uses its default local `mlruns`
-directory; launch the UI with:
+Docker Compose serves the checked-in SQLite tracking store and its associated
+`mlruns/` artifacts at `http://localhost:5000`. To make host-run training
+scripts write to the same store, set the tracking URI before running them:
 
 ```bash
-mlflow ui --backend-store-uri ./mlruns
+export MLFLOW_TRACKING_URI=http://localhost:5000
+python main.py --dataset dataset/malwareDataset.csv
 ```
+
+Without `MLFLOW_TRACKING_URI`, MLflow uses its local default store, which is
+separate from the Compose UI. For LAN access, the Compose defaults include the observed origin
+`http://192.168.100.77:5000`. If the host address changes, set
+`MLFLOW_SERVER_CORS_ALLOWED_ORIGINS` in `.env` to the exact trusted browser
+origins, then recreate the `mlopsapp` service. Keep this list limited to
+origins you trust.
 
 ## Run the MLOps stack
 
@@ -145,7 +155,7 @@ Structured events are available under `event_data`; for example,
 `event_data.event: training_completed` and
 `event_data.event: prediction_completed`.
 
-The `mlflow_data` volume persists MLflow tracking data and artifacts.
-Elasticsearch, Logstash state, and the trained model are also stored in named
-volumes. To intentionally remove persisted data, use
-`docker compose down --volumes`.
+MLflow tracking data and artifacts persist in `mlflow.db` and `mlruns/` in the
+project directory. Elasticsearch, Logstash state, logs, and the trained model
+are stored in named volumes. `docker compose down --volumes` removes the named
+volumes; it does not remove the MLflow files in the project directory.

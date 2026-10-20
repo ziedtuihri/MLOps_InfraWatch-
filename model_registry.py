@@ -36,7 +36,6 @@ def register_to_registry(model, experiment_name, registered_model_name, scaler=N
         mlflow.sklearn.log_model(
             sk_model=model,
             artifact_path="model",
-            registered_model_name=registered_model_name,
             serialization_format="pickle",
         )
         model_version = mlflow.register_model(

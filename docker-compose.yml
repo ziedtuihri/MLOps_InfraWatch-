@@ -127,7 +127,8 @@ services:
       - ./dataset:/app/dataset:ro,Z
       - mlops_logs:/app/logs:Z
       - mlops_models:/models:Z
-      - mlflow_data:/mlflow:Z
+      - ./mlflow.db:/mlflow/mlflow.db:Z
+      - ./mlruns:${PWD}/mlruns:Z
     ports:
       - 5000:5000  # MLflow UI
       - 8000:8000  # MLOps API
@@ -135,7 +136,8 @@ services:
       APP_LOG_FILE: /app/logs/mlops.log
       MODEL_PATH: /models/malware_detection_model.pkl
       MLFLOW_TRACKING_URI: sqlite:////mlflow/mlflow.db
-      MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts
+      MLFLOW_ARTIFACT_ROOT: ${PWD}/mlruns
+      MLFLOW_SERVER_CORS_ALLOWED_ORIGINS: ${MLFLOW_SERVER_CORS_ALLOWED_ORIGINS:-http://localhost:5000,http://127.0.0.1:5000,http://192.168.100.77:5000}
     networks:
       - elk
 
@@ -148,4 +150,3 @@ volumes:
   logstash_data:
   mlops_logs:
   mlops_models:
-  mlflow_data:
