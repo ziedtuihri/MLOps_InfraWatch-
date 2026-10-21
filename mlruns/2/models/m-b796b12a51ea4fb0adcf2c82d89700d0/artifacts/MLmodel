@@ -1,0 +1,38 @@
+artifact_path: /home/ziedth/Desktop/MLOps_InfraWatch-/mlruns/2/models/m-b796b12a51ea4fb0adcf2c82d89700d0/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.13
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: pickle
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.17.1
+model_id: m-b796b12a51ea4fb0adcf2c82d89700d0
+model_size_bytes: 3783831
+model_uuid: m-b796b12a51ea4fb0adcf2c82d89700d0
+prompts: null
+run_id: 38096675712d4d03857886e48ad8300f
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "long", "name": "usage_counter", "required": true}, {"type":
+    "long", "name": "fs_excl_counter", "required": true}, {"type": "long", "name":
+    "task_size", "required": true}, {"type": "long", "name": "end_data", "required":
+    true}, {"type": "long", "name": "policy", "required": true}, {"type": "long",
+    "name": "nivcsw", "required": true}]'
+  outputs: '[{"type": "string", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-21 11:56:07.037181'

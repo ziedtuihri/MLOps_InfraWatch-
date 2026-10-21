@@ -1,4 +1,4 @@
-.PHONY: all venv install format format-check lint security check prepare_data train_model train_hex_model train_iris_model test clean
+.PHONY: all venv install format format-check lint security check train_model train_hex_model train_iris_model test ansible-ui clean
 
 PYTHON_FILES := $(wildcard *.py)
 
@@ -29,11 +29,7 @@ security:
 # 6. Run all code checks
 check: format-check lint security
 
-# 7. Prepare data
-prepare_data:
-	. venv/bin/activate && python3 -c "from main import prepare_data; prepare_data()"
-
-# 8. Train model
+# 7. Train model
 train_model:
 	. venv/bin/activate && python3 -c "from main import train_model; train_model()"
 
@@ -47,7 +43,10 @@ train_iris_model:
 
 # 9. Run tests
 test:
-	. venv/bin/activate && pytest
+	. venv/bin/activate && python -m pytest
+
+ansible-ui:
+	. venv/bin/activate && python -m uvicorn ansible_ui:app --host 192.168.100.77 --port 8080
 
 # 10. Clean up
 clean:
@@ -57,7 +56,10 @@ app:
 	python3 main.py	
 
 up:
-	docker compose up --build
+	docker compose up -d
+
+build:
+	docker compose up --build -d
 
 down:
 	docker compose down
@@ -69,4 +71,4 @@ logstash:
 	docker compose up -d --force-recreate logstash	
 
 # 11. Run everything
-all: install check prepare_data train_model train_hex_model test up
+all: install check up train_model train_hex_model test

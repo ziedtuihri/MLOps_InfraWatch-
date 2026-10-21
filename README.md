@@ -188,11 +188,26 @@ ansible-playbook ansible/site.yml --tags setup,quality,training,tests
 ansible-playbook ansible/site.yml --tags stack
 ```
 
-Available tags are `setup` (`make install`), `quality` (`make check`), `data`
-(`make prepare_data`), `training` (the malware, UCI, and Iris training
-targets), `tests` (`make test`), and `stack` (`make up`). Running the playbook
-without tags runs every listed step in order.
+Available tags are `setup` (`make install`), `quality` (`make check`),
+`training` (the malware, UCI, and Iris training targets), `tests` (`make test`),
+and `stack` (`make up`). The stack starts detached before training and Ansible
+waits for the MLflow tracking server. Selecting `training` also starts and
+waits for the stack, and configures the training runs to log to its MLflow
+server. Running the playbook without tags runs every listed step in order.
 
 The `quality` step checks formatting, lint, and security for the project-root
 Python files without changing them. Run `make format` separately to apply
 formatting.
+
+To run these steps from a local web interface, install Ansible on the host and
+start the UI from the project root:
+
+```bash
+make install
+make ansible-ui
+```
+
+Open `http://127.0.0.1:8080` to select individual tagged steps or run the whole
+playbook. The page displays the active status, exit code, and recent Ansible
+output. The runner binds only to localhost and allows one playbook run at a
+time.

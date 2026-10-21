@@ -1,0 +1,37 @@
+artifact_path: /home/ziedth/Desktop/MLOps_InfraWatch-/mlruns/4/models/m-6634b7a73e994d478e4fcc7871e4e7d4/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.12.13
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.17.1
+model_id: m-6634b7a73e994d478e4fcc7871e4e7d4
+model_size_bytes: 10345
+model_uuid: m-6634b7a73e994d478e4fcc7871e4e7d4
+prompts: null
+run_id: 8120c57f5db24dab8b8f9585fb6d4a96
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "sepal length (cm)", "required": true}, {"type":
+    "double", "name": "sepal width (cm)", "required": true}, {"type": "double", "name":
+    "petal length (cm)", "required": true}, {"type": "double", "name": "petal width
+    (cm)", "required": true}]'
+  outputs: '[{"type": "double", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-21 13:33:20.473245'
