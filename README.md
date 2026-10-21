@@ -192,3 +192,7 @@ Available tags are `setup` (`make install`), `quality` (`make check`), `data`
 (`make prepare_data`), `training` (the malware, UCI, and Iris training
 targets), `tests` (`make test`), and `stack` (`make up`). Running the playbook
 without tags runs every listed step in order.
+
+The `quality` step checks formatting, lint, and security for the project-root
+Python files without changing them. Run `make format` separately to apply
+formatting.

@@ -1,4 +1,6 @@
-.PHONY: all venv install format lint security check prepare_data train_model train_hex_model train_iris_model test clean
+.PHONY: all venv install format format-check lint security check prepare_data train_model train_hex_model train_iris_model test clean
+
+PYTHON_FILES := $(wildcard *.py)
 
 # 1. Create virtual environment
 venv:
@@ -10,18 +12,22 @@ install: venv
 
 # 3. Code formatting
 format:
-	. venv/bin/activate && black .
+	. venv/bin/activate && black $(PYTHON_FILES)
+
+# Verify formatting without changing files
+format-check:
+	. venv/bin/activate && black --check $(PYTHON_FILES)
 
 # 4. Linting
 lint:
-	. venv/bin/activate && flake8 .
+	. venv/bin/activate && flake8 --max-line-length=88 $(PYTHON_FILES)
 
 # 5. Security check
 security:
-	. venv/bin/activate && pip install bandit && bandit -r .
+	. venv/bin/activate && bandit $(PYTHON_FILES)
 
 # 6. Run all code checks
-check: format lint security
+check: format-check lint security
 
 # 7. Prepare data
 prepare_data:

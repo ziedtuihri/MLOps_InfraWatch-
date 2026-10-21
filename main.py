@@ -6,11 +6,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 import joblib
-import pandas as pd
 
 from malwer_detecter import (
     FEATURE_COLUMNS,
-    extract_file_features,
     load_dataset,
     scan_directory,
     train_malware_model,

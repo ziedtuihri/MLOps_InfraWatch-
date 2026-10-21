@@ -30,7 +30,6 @@ from sklearn.tree import DecisionTreeClassifier
 from logging_config import setup_logging
 from mlflow_utils import mlflow_run
 
-
 logger = logging.getLogger("cluster_monitoring")
 MLFLOW_EXPERIMENT = "Datacenter Outage Prediction"
 
@@ -102,9 +101,7 @@ def _log_model_run(
         mlflow.log_text(
             "\n".join(REQUIRED_COLUMNS), artifact_file="feature_columns.txt"
         )
-        mlflow.log_dict(
-            report, artifact_file="evaluation/classification_report.json"
-        )
+        mlflow.log_dict(report, artifact_file="evaluation/classification_report.json")
         mlflow.log_dict(
             {"labels": classes, "matrix": matrix.tolist()},
             artifact_file="evaluation/confusion_matrix.json",
@@ -153,8 +150,8 @@ def main():
     telemetry = telemetry.dropna(subset=REQUIRED_COLUMNS).copy()
     print(f"Rows available after cleaning: {len(telemetry):,}")
 
-    base_condition = (
-        (telemetry["CPU_Usage_Pct"] > 80) & (telemetry["Memory_Usage_Pct"] > 75)
+    base_condition = (telemetry["CPU_Usage_Pct"] > 80) & (
+        telemetry["Memory_Usage_Pct"] > 75
     )
     noise = np.random.default_rng(42).random(len(telemetry)) < 0.035
     telemetry["Is_Outage"] = (base_condition.to_numpy() ^ noise).astype(int)
@@ -214,9 +211,7 @@ def main():
             "importance": importances[indices],
         }
     )
-    sns.barplot(
-        data=importance_df, x="importance", y="feature", color="steelblue"
-    )
+    sns.barplot(data=importance_df, x="importance", y="feature", color="steelblue")
     plt.title("Random Forest feature importance for outage prediction")
     plt.tight_layout()
     plt.show()

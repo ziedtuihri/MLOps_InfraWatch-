@@ -45,7 +45,9 @@ def register_to_registry(model, experiment_name, registered_model_name, scaler=N
         client = MlflowClient()
         client.update_registered_model(
             name=registered_model_name,
-            description="Malware detection model trained on process telemetry features.",
+            description=(
+                "Malware detection model trained on process telemetry features."
+            ),
         )
         client.set_registered_model_tag(
             registered_model_name, "project", "MalwareDetection"

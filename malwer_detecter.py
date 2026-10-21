@@ -8,7 +8,6 @@ from urllib.parse import quote
 
 import mlflow
 import mlflow.sklearn
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
@@ -65,7 +64,10 @@ def get_hashes(file_path):
 
     with open(file_path, "rb") as handle:
         file_bytes = handle.read()
-    return hashlib.md5(file_bytes).hexdigest(), hashlib.sha256(file_bytes).hexdigest()
+    return (
+        hashlib.md5(file_bytes, usedforsecurity=False).hexdigest(),
+        hashlib.sha256(file_bytes).hexdigest(),
+    )
 
 
 def extract_file_features(file_path):
@@ -116,7 +118,7 @@ def load_dataset(path):
 
 
 def train_malware_model(df):
-    """Train a Random Forest model on the malware dataset and return the model, scaler, and metrics."""
+    """Train a Random Forest model and return it with the scaler and metrics."""
     missing_columns = [
         column
         for column in FEATURE_COLUMNS + ["classification"]
@@ -205,12 +207,8 @@ def train_malware_model(df):
             mlflow.data.from_pandas(training_data, source="malware training data"),
             context="training",
         )
-        mlflow.log_text(
-            "\n".join(FEATURE_COLUMNS), artifact_file="feature_columns.txt"
-        )
-        mlflow.log_dict(
-            report, artifact_file="evaluation/classification_report.json"
-        )
+        mlflow.log_text("\n".join(FEATURE_COLUMNS), artifact_file="feature_columns.txt")
+        mlflow.log_dict(report, artifact_file="evaluation/classification_report.json")
         mlflow.log_dict(
             {
                 "labels": [str(label) for label in model.classes_],
