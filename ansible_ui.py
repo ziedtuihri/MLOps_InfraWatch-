@@ -129,6 +129,49 @@ HTML_PAGE = """
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ansible Workflow Runner</title>
   <style>
+  body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #334155;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #38bdf8;
+        }
+        .card p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+        .mlflow-btn {
+            display: inline-block;
+            background-color: #0284c7;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .mlflow-btn:hover {
+            background-color: #0369a1;
+            transform: translateY(-2px);
+        }
     :root { color-scheme: light dark; font: 16px system-ui, sans-serif; }
     body { max-width: 900px; margin: 3rem auto; padding: 0 1rem; }
     h1 { margin-bottom: .4rem; }
@@ -156,6 +199,13 @@ HTML_PAGE = """
   <p class="hint">
     Runs the local playbook. Only the steps selected below can be started.
   </p>
+  <div class="card">
+        <h2>MLflow Tracking Server</h2>
+        <p>Access your experiment tracking, artifacts, and model parameters.</p>
+        <a href="http://192.168.100.77:5000/" class="mlflow-btn" target="_blank" rel="noopener noreferrer">
+            Launch MLflow UI &rarr;
+        </a>
+    </div>
   <form id="run-form">
     <label><input type="checkbox" name="tag" value="setup">
       Setup — install dependencies</label>
