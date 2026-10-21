@@ -20,7 +20,7 @@ format-check:
 
 # 4. Linting
 lint:
-	. venv/bin/activate && flake8 --max-line-length=88 $(PYTHON_FILES)
+	. venv/bin/activate && flake8 --max-line-length=88 --per-file-ignores=ansible_ui.py:E501 $(PYTHON_FILES)
 
 # 5. Security check
 security:

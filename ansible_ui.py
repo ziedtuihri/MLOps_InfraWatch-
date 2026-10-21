@@ -121,7 +121,6 @@ async def _run_playbook(run_id: str, executable: str, tags: list[str] | None):
     run["status"] = "succeeded" if return_code == 0 else "failed"
 
 
-    
 HTML_PAGE = """
 <!doctype html>
 <html lang="en" data-theme="dark">
