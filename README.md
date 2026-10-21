@@ -56,6 +56,21 @@ contains both classifiers under `models`, the ordered `feature_columns`, class
 labels, and holdout metrics. Each model's holdout metrics and per-row
 predictions are also written to `logs/hex_malware_detection.log`.
 
+## ElasticNet regression metrics
+
+Run the Iris ElasticNet example to log holdout RMSE and R-squared in the
+`ElasticNet Iris Regression` MLflow experiment:
+
+```bash
+make train_iris_model
+```
+
+The run logs the fitted model, training data lineage, and both metrics against
+the held-out Iris dataset. It also writes a structured evaluation event to
+`logs/elasticnet_iris.log`, which Logstash indexes for the Kibana `logs-*` data
+view. The metrics are available as `event_data.metric_rmse` and
+`event_data.metric_r2`.
+
 ## Cluster monitoring notebook
 
 Run `notebooks/Monitoring_Cluster.ipynb` from top to bottom. It reads
@@ -97,12 +112,15 @@ already imported, update it with
 
 ## MLflow training experiments
 
-The three standalone training workflows log to separate MLflow experiments:
+The standalone training workflows log to separate MLflow experiments:
 `Malware Detection` (`main.py`), `UCI Malware Detection`
-(`hex_malware_detection.py`), and `Datacenter Outage Prediction`
-(`Monitor_Cluster.py`). Each run records model parameters, training data
-lineage, holdout metrics, evaluation reports, feature columns, and a
-scikit-learn model artifact. Training also registers models in the Model
+(`hex_malware_detection.py`), `Datacenter Outage Prediction`
+(`Monitor_Cluster.py`), and `ElasticNet Iris Regression`
+(`elasticnet_iris.py`). The malware and datacenter runs record model
+parameters, training data lineage, holdout metrics, evaluation reports, feature
+columns, and a scikit-learn model artifact. The Iris run logs RMSE and R-squared
+against its held-out dataset with the metrics linked to its logged model.
+Training also registers the malware and datacenter models in the Model
 Registry (`malware-detection-model`, `uci-malware-decision_tree`,
 `uci-malware-knn`, and one `datacenter-outage-*` model per estimator). The
 malware scanner artifact includes its fitted scaler so it accepts the original
@@ -159,3 +177,18 @@ MLflow tracking data and artifacts persist in `mlflow.db` and `mlruns/` in the
 project directory. Elasticsearch, Logstash state, logs, and the trained model
 are stored in named volumes. `docker compose down --volumes` removes the named
 volumes; it does not remove the MLflow files in the project directory.
+
+## Ansible automation
+
+`ansible/site.yml` runs selected Makefile workflows on the local machine.
+Install Ansible and run a tag to choose the desired steps; for example:
+
+```bash
+ansible-playbook ansible/site.yml --tags setup,quality,training,tests
+ansible-playbook ansible/site.yml --tags stack
+```
+
+Available tags are `setup` (`make install`), `quality` (`make check`), `data`
+(`make prepare_data`), `training` (the malware, UCI, and Iris training
+targets), `tests` (`make test`), and `stack` (`make up`). Running the playbook
+without tags runs every listed step in order.

@@ -1,0 +1,49 @@
+---
+- name: Automate project Makefile workflows
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    project_dir: "{{ playbook_dir }}/.."
+
+  tasks:
+    - name: Install project dependencies
+      ansible.builtin.command: make install
+      args:
+        chdir: "{{ project_dir }}"
+      tags: [setup]
+
+    - name: Run formatting, lint, and security checks
+      ansible.builtin.command: make check
+      args:
+        chdir: "{{ project_dir }}"
+      tags: [quality]
+
+    - name: Prepare project data
+      ansible.builtin.command: make prepare_data
+      args:
+        chdir: "{{ project_dir }}"
+      tags: [data]
+
+    - name: Train project models
+      ansible.builtin.command: make "{{ item }}"
+      args:
+        chdir: "{{ project_dir }}"
+      loop:
+        - train_model
+        - train_hex_model
+        - train_iris_model
+      tags: [training]
+
+    - name: Run project tests
+      ansible.builtin.command: make test
+      args:
+        chdir: "{{ project_dir }}"
+      tags: [tests]
+
+    - name: Start the Docker Compose stack
+      ansible.builtin.command: make up
+      args:
+        chdir: "{{ project_dir }}"
+      tags: [stack]

@@ -1,4 +1,4 @@
-.PHONY: all venv install format lint security check prepare_data train_model train_hex_model test clean
+.PHONY: all venv install format lint security check prepare_data train_model train_hex_model train_iris_model test clean
 
 # 1. Create virtual environment
 venv:
@@ -34,6 +34,10 @@ train_model:
 # Train and evaluate the UCI 531-feature malware models
 train_hex_model:
 	. venv/bin/activate && python3 hex_malware_detection.py
+
+# Train the ElasticNet regression example and log RMSE/R² to MLflow
+train_iris_model:
+	. venv/bin/activate && python3 elasticnet_iris.py
 
 # 9. Run tests
 test:
